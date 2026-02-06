@@ -1,0 +1,42 @@
+/* src/styles/Drivers.css */
+.drivers-page {
+  max-width: 1400px;
+}
+
+.drivers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.drivers-table thead {
+  background: var(--bg);
+}
+
+.drivers-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.drivers-table td {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.drivers-table tbody tr:hover {
+  background: var(--bg);
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .drivers-table {
+    min-width: 600px;
+  }
+}
