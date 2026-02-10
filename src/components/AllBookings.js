@@ -7,6 +7,7 @@ import '../styles/Bookings.css';
 const AllBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [cars, setCars] = useState([]);
+  const [users, setUsers] = useState({});
 
   useEffect(() => {
     // Listen to all bookings
@@ -35,14 +36,47 @@ const AllBookings = () => {
       setCars(carsData);
     });
 
+    // Listen to users collection to get names
+    const usersQuery = query(collection(db, 'users'));
+    const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
+      const usersMap = {};
+      snapshot.docs.forEach(doc => {
+        usersMap[doc.id] = doc.data();
+      });
+      setUsers(usersMap);
+    }, (error) => {
+      console.error('Error fetching users:', error);
+    });
+
     return () => {
       unsubscribeBookings();
       unsubscribeCars();
+      unsubscribeUsers();
     };
   }, []);
 
   const getCarById = (carId) => {
     return cars.find(c => c.id === carId);
+  };
+
+  const getEmployeeName = (booking) => {
+    // First try to get name from booking itself
+    if (booking.userName) {
+      return booking.userName;
+    }
+    
+    // Fallback: get from users collection
+    if (booking.userId && users[booking.userId]) {
+      return users[booking.userId].name || users[booking.userId].email || 'Unknown';
+    }
+    
+    // Last resort
+    return 'Unknown User';
+  };
+
+  const getEmployeeAvatar = (booking) => {
+    const name = getEmployeeName(booking);
+    return name.charAt(0).toUpperCase();
   };
 
   const handleCancelBooking = async (bookingId) => {
@@ -81,6 +115,7 @@ const AllBookings = () => {
             <tr>
               <th>Employee</th>
               <th>Car</th>
+              <th>Car Plate</th>
               <th>Start Date</th>
               <th>End Date</th>
               <th>Meter (km)</th>
@@ -99,10 +134,21 @@ const AllBookings = () => {
             ) : (
               bookings.map(booking => {
                 const car = getCarById(booking.carId);
+                const employeeName = getEmployeeName(booking);
+                const employeeAvatar = getEmployeeAvatar(booking);
+                
                 return (
                   <tr key={booking.id}>
-                    <td>{booking.userName}</td>
+                    <td>
+                      <div className="employee-info">
+                        <span className="employee-avatar">
+                          {employeeAvatar}
+                        </span>
+                        <span>{employeeName}</span>
+                      </div>
+                    </td>
                     <td>{car?.model || 'Unknown'}</td>
+                    <td>{car?.plate || 'Unknown'}</td>
                     <td>{new Date(booking.startDate).toLocaleString()}</td>
                     <td>{new Date(booking.endDate).toLocaleString()}</td>
                     <td>

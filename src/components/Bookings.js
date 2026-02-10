@@ -6,9 +6,10 @@ import { db } from '../services/firebase';
 import '../styles/Bookings.css';
 
 const Bookings = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [cars, setCars] = useState([]);
+  const [users, setUsers] = useState({});
 
   useEffect(() => {
     // Listen to user's bookings
@@ -38,14 +39,47 @@ const Bookings = () => {
       setCars(carsData);
     });
 
+    // Listen to users collection
+    const usersQuery = query(collection(db, 'users'));
+    const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
+      const usersMap = {};
+      snapshot.docs.forEach(doc => {
+        usersMap[doc.id] = doc.data();
+      });
+      setUsers(usersMap);
+    }, (error) => {
+      console.error('Error fetching users:', error);
+    });
+
     return () => {
       unsubscribeBookings();
       unsubscribeCars();
+      unsubscribeUsers();
     };
   }, [currentUser]);
 
   const getCarById = (carId) => {
     return cars.find(c => c.id === carId);
+  };
+
+  const getEmployeeName = (booking) => {
+    // First try to get name from booking itself
+    if (booking.userName) {
+      return booking.userName;
+    }
+    
+    // Fallback: get from users collection
+    if (booking.userId && users[booking.userId]) {
+      return users[booking.userId].name || users[booking.userId].email || 'Unknown';
+    }
+    
+    // Last resort
+    return 'Unknown User';
+  };
+
+  const getEmployeeAvatar = (booking) => {
+    const name = getEmployeeName(booking);
+    return name.charAt(0).toUpperCase();
   };
 
   const handleStartTrip = async (bookingId) => {
@@ -145,13 +179,14 @@ const Bookings = () => {
     <div className="bookings-page">
       <div className="page-header">
         <h2>My Bookings</h2>
-        <p>View and manage your car bookings</p>
+        <p>{userProfile?.name}'s car reservations and trip history</p>
       </div>
 
       <div className="table-container">
         <table className="bookings-table">
           <thead>
             <tr>
+              <th>Booked By</th>
               <th>Car</th>
               <th>Start Date</th>
               <th>End Date</th>
@@ -163,15 +198,26 @@ const Bookings = () => {
           <tbody>
             {bookings.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>
                   No bookings found
                 </td>
               </tr>
             ) : (
               bookings.map(booking => {
                 const car = getCarById(booking.carId);
+                const employeeName = getEmployeeName(booking);
+                const employeeAvatar = getEmployeeAvatar(booking);
+                
                 return (
                   <tr key={booking.id}>
+                    <td>
+                      <div className="employee-info">
+                        <span className="employee-avatar">
+                          {employeeAvatar}
+                        </span>
+                        <span>{employeeName}</span>
+                      </div>
+                    </td>
                     <td>{car?.model || 'Unknown'}</td>
                     <td>{new Date(booking.startDate).toLocaleString()}</td>
                     <td>{new Date(booking.endDate).toLocaleString()}</td>

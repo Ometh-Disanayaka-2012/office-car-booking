@@ -55,9 +55,15 @@ const Layout = () => {
         </nav>
 
         <div className="user-info">
-          <div className="user-name">{userProfile?.name}</div>
-          <div className="user-role">
-            {isAdmin() ? 'Administrator' : 'Employee'}
+          <div className="user-avatar">
+            {userProfile?.name?.charAt(0) || '?'}
+          </div>
+          <div className="user-details">
+            <div className="user-name">{userProfile?.name || 'User'}</div>
+            <div className="user-email">{userProfile?.email || ''}</div>
+            <div className="user-role">
+              {isAdmin() ? '👑 Administrator' : '👤 Employee'}
+            </div>
           </div>
           <button className="logout-btn" onClick={handleLogout}>
             Logout

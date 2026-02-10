@@ -8,7 +8,7 @@ import CarModal from './CarModal';
 import '../styles/Cars.css';
 
 const Cars = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, userProfile } = useAuth();
   const [cars, setCars] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -121,7 +121,12 @@ const Cars = () => {
       <div className="page-header">
         <div>
           <h2>Cars</h2>
-          <p>Browse and manage vehicles</p>
+          <p>
+            {isAdmin() 
+              ? 'Manage your fleet and vehicle assignments' 
+              : `Browse available vehicles, ${userProfile?.name?.split(' ')[0] || 'there'}`
+            }
+          </p>
         </div>
         {isAdmin() && (
           <button className="btn-primary" onClick={handleAddCar}>
