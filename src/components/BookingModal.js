@@ -65,7 +65,8 @@ const BookingModal = ({ car, existingBookings = [], onClose }) => {
       const bookingData = {
         carId: car.id,
         userId: currentUser.uid,
-        userName: userProfile.email,
+        userName: userProfile.name,
+        userEmail: userProfile.email || currentUser.email,
         startDate: formData.startDate,
         endDate: formData.endDate,
         purpose: formData.purpose,

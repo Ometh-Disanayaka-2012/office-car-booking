@@ -1,12 +1,18 @@
 // src/contexts/AuthContext.js
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db } from '../services/firebase';
-import { 
-  signInWithEmailAndPassword, 
+import {
+  signInWithEmailAndPassword,
   signOut as firebaseSignOut,
-  onAuthStateChanged 
+  onAuthStateChanged
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  getDocs
+} from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -26,27 +32,41 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Get user profile from Firestore
         try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data());
+          // 🔍 Find employee by email
+          const q = query(
+            collection(db, "employees"),
+            where("email", "==", user.email)
+          );
+
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const employeeData = querySnapshot.docs[0].data();
+
+            setUserProfile({
+              ...employeeData,
+              email: user.email
+            });
           } else {
-            // Demo user profile for testing
+            // If employee not found
             setUserProfile({
               email: user.email,
-              name: user.email.includes('admin') ? 'Admin User' : 'Employee',
-              role: user.email.includes('admin') ? 'admin' : 'employee'
+              name: "Unknown User",
+              role: "employee"
             });
           }
+
         } catch (error) {
-          console.error('Error fetching user profile:', error);
+          console.error('Error fetching employee profile:', error);
         }
+
         setCurrentUser(user);
       } else {
         setCurrentUser(null);
         setUserProfile(null);
       }
+
       setLoading(false);
     });
 

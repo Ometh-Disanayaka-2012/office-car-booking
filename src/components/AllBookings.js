@@ -7,7 +7,7 @@ import '../styles/Bookings.css';
 const AllBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [cars, setCars] = useState([]);
-  const [users, setUsers] = useState({});
+  const [employees, setEmployees] = useState({});
 
   useEffect(() => {
     // Listen to all bookings
@@ -36,14 +36,38 @@ const AllBookings = () => {
       setCars(carsData);
     });
 
-    // Listen to users collection to get names
+    // Listen to employees collection
+    const employeesQuery = query(collection(db, 'employees'));
+    const unsubscribeEmployees = onSnapshot(employeesQuery, (snapshot) => {
+      const employeesMap = {};
+      snapshot.docs.forEach(doc => {
+        const empData = doc.data();
+        // Map by email for easy lookup
+        employeesMap[empData.email] = { id: doc.id, ...empData };
+      });
+      setEmployees(employeesMap);
+    }, (error) => {
+      console.error('Error fetching employees:', error);
+    });
+
+    // Also listen to users collection as fallback
     const usersQuery = query(collection(db, 'users'));
     const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
-      const usersMap = {};
       snapshot.docs.forEach(doc => {
-        usersMap[doc.id] = doc.data();
+        const userData = doc.data();
+        // Only add to employees if not already there
+        if (userData.email && !employees[userData.email]) {
+          setEmployees(prev => ({
+            ...prev,
+            [userData.email]: { 
+              id: doc.id, 
+              name: userData.name, 
+              email: userData.email,
+              role: userData.role 
+            }
+          }));
+        }
       });
-      setUsers(usersMap);
     }, (error) => {
       console.error('Error fetching users:', error);
     });
@@ -51,6 +75,7 @@ const AllBookings = () => {
     return () => {
       unsubscribeBookings();
       unsubscribeCars();
+      unsubscribeEmployees();
       unsubscribeUsers();
     };
   }, []);
@@ -65,13 +90,23 @@ const AllBookings = () => {
       return booking.userName;
     }
     
-    // Fallback: get from users collection
-    if (booking.userId && users[booking.userId]) {
-      return users[booking.userId].name || users[booking.userId].email || 'Unknown';
+    // Try to get user email from booking
+    const userEmail = booking.userEmail || booking.email;
+    
+    // Look up in employees collection by email
+    if (userEmail && employees[userEmail]) {
+      return employees[userEmail].name || userEmail;
     }
     
-    // Last resort
-    return 'Unknown User';
+    // Last resort: try userId lookup (backwards compatibility)
+    if (booking.userId) {
+      const employee = Object.values(employees).find(emp => emp.id === booking.userId);
+      if (employee) {
+        return employee.name;
+      }
+    }
+    
+    return userEmail || 'Unknown User';
   };
 
   const getEmployeeAvatar = (booking) => {
@@ -115,7 +150,7 @@ const AllBookings = () => {
             <tr>
               <th>Employee</th>
               <th>Car</th>
-              <th>Car Plate</th>
+              <th>Car Number</th>
               <th>Start Date</th>
               <th>End Date</th>
               <th>Meter (km)</th>

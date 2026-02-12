@@ -50,6 +50,11 @@ const Layout = () => {
                 <span className="nav-icon">👨‍✈️</span>
                 <span>Drivers</span>
               </NavLink>
+
+              <NavLink to="/employees" className="nav-item">
+                <span className="nav-icon">👥</span>
+                <span>Employees</span>
+              </NavLink>
             </>
           )}
         </nav>
@@ -59,8 +64,12 @@ const Layout = () => {
             {userProfile?.name?.charAt(0) || '?'}
           </div>
           <div className="user-details">
-            <div className="user-name">{userProfile?.name || 'User'}</div>
-            <div className="user-email">{userProfile?.email || ''}</div>
+            <div className="user-name">
+              {userProfile?.name || 'User'}
+            </div>
+            <div className="user-email">
+              {userProfile?.email || ''}
+            </div>
             <div className="user-role">
               {isAdmin() ? '👑 Administrator' : '👤 Employee'}
             </div>

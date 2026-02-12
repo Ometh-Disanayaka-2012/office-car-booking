@@ -15,6 +15,8 @@ const Cars = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCar, setEditingCar] = useState(null);
 
+
+  
   useEffect(() => {
     // Listen to cars
     const carsQuery = query(collection(db, 'cars'));
@@ -23,6 +25,8 @@ const Cars = () => {
         id: doc.id,
         ...doc.data()
       }));
+      const availableCars = carsData.filter(car => car.availableToday);
+
       setCars(carsData);
     }, (error) => {
       console.error('Error fetching cars:', error);

@@ -9,6 +9,7 @@ import Cars from './components/Cars';
 import Bookings from './components/Bookings';
 import AllBookings from './components/AllBookings';
 import Drivers from './components/Drivers';
+import Employees from './components/Employees';
 import './App.css';
 
 // Protected Route wrapper
@@ -61,6 +62,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute adminOnly>
               <Drivers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="employees"
+          element={
+            <ProtectedRoute adminOnly>
+              <Employees />
             </ProtectedRoute>
           }
         />

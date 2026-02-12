@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import BookingModal from './BookingModal';
 import { useAuth } from '../contexts/AuthContext';
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../services/firebase";
 
 const CarCard = ({ car, driver, inUse, bookings, onEdit, onDelete }) => {
   const { isAdmin } = useAuth();
@@ -12,12 +14,33 @@ const CarCard = ({ car, driver, inUse, bookings, onEdit, onDelete }) => {
     .filter(b => b.carId === car.id && b.status === 'active')
     .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
+    const toggleAvailability = async (carId, currentStatus) => {
+      try {
+        await updateDoc(doc(db, "cars", carId), {
+          availableToday: !currentStatus
+        });
+      } catch (error) {
+        console.error("Error updating availability:", error);
+      }
+    };
+
   return (
     <>
       <div className="car-card">
         <div className={`car-status ${inUse ? 'in-use' : 'available'}`}>
           {inUse ? 'In Use' : 'Available'}
         </div>
+
+        {isAdmin() && (
+  <label>
+    <input
+      type="checkbox"
+      checked={car.availableToday}
+      onChange={() => toggleAvailability(car.id, car.availableToday)}
+    />
+    Available Today
+  </label>
+)}
         
         <div className="car-image">🚗</div>
         
