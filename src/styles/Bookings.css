@@ -59,6 +59,16 @@
   flex-shrink: 0;
 }
 
+.booked-by-admin-tag {
+  font-size: 0.7rem;
+  color: #92400E;
+  background: #FEF3C7;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  margin-top: 0.2rem;
+  display: inline-block;
+}
+
 @media (max-width: 768px) {
   .table-container {
     overflow-x: auto;

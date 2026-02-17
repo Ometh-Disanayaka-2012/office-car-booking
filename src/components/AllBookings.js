@@ -8,6 +8,7 @@ const AllBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [cars, setCars] = useState([]);
   const [employees, setEmployees] = useState({});
+  const [userIdToEmployee, setUserIdToEmployee] = useState({}); // NEW: Direct userId mapping
 
   useEffect(() => {
     // Listen to all bookings
@@ -53,21 +54,31 @@ const AllBookings = () => {
     // Also listen to users collection as fallback
     const usersQuery = query(collection(db, 'users'));
     const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
+      const userIdMap = {};
+      const emailMap = { ...employees };
+      
       snapshot.docs.forEach(doc => {
         const userData = doc.data();
-        // Only add to employees if not already there
-        if (userData.email && !employees[userData.email]) {
-          setEmployees(prev => ({
-            ...prev,
-            [userData.email]: { 
-              id: doc.id, 
-              name: userData.name, 
-              email: userData.email,
-              role: userData.role 
-            }
-          }));
+        const empData = {
+          id: doc.id,
+          userId: doc.id,
+          name: userData.name || userData.email,
+          email: userData.email,
+          role: userData.role,
+          source: 'users'
+        };
+        
+        // Map by userId for direct lookup
+        userIdMap[doc.id] = empData;
+        
+        // Map by email if not already in employees
+        if (userData.email && !emailMap[userData.email]) {
+          emailMap[userData.email] = empData;
         }
       });
+      
+      setUserIdToEmployee(userIdMap);
+      setEmployees(emailMap);
     }, (error) => {
       console.error('Error fetching users:', error);
     });
@@ -90,22 +101,18 @@ const AllBookings = () => {
       return booking.userName;
     }
     
-    // Try to get user email from booking
-    const userEmail = booking.userEmail || booking.email;
+    // Direct userId lookup (most reliable for old bookings!)
+    if (booking.userId && userIdToEmployee[booking.userId]) {
+      return userIdToEmployee[booking.userId].name;
+    }
     
-    // Look up in employees collection by email
+    // Try to get user email from booking and lookup
+    const userEmail = booking.userEmail || booking.email;
     if (userEmail && employees[userEmail]) {
       return employees[userEmail].name || userEmail;
     }
     
-    // Last resort: try userId lookup (backwards compatibility)
-    if (booking.userId) {
-      const employee = Object.values(employees).find(emp => emp.id === booking.userId);
-      if (employee) {
-        return employee.name;
-      }
-    }
-    
+    // Last resort
     return userEmail || 'Unknown User';
   };
 
@@ -150,7 +157,6 @@ const AllBookings = () => {
             <tr>
               <th>Employee</th>
               <th>Car</th>
-              <th>Car Number</th>
               <th>Start Date</th>
               <th>End Date</th>
               <th>Meter (km)</th>
@@ -179,11 +185,17 @@ const AllBookings = () => {
                         <span className="employee-avatar">
                           {employeeAvatar}
                         </span>
-                        <span>{employeeName}</span>
+                        <div>
+                          <span>{employeeName}</span>
+                          {booking.bookedByAdmin && (
+                            <div className="booked-by-admin-tag">
+                              📋 Booked by {booking.bookedByName || 'Admin'}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td>{car?.model || 'Unknown'}</td>
-                    <td>{car?.plate || 'Unknown'}</td>
                     <td>{new Date(booking.startDate).toLocaleString()}</td>
                     <td>{new Date(booking.endDate).toLocaleString()}</td>
                     <td>
