@@ -157,6 +157,7 @@ const AllBookings = () => {
             <tr>
               <th>Employee</th>
               <th>Car</th>
+              <th>Car Plate</th>
               <th>Start Date</th>
               <th>End Date</th>
               <th>Meter (km)</th>
@@ -196,6 +197,7 @@ const AllBookings = () => {
                       </div>
                     </td>
                     <td>{car?.model || 'Unknown'}</td>
+                    <td>{car?.plate || 'Unknown'}</td>
                     <td>{new Date(booking.startDate).toLocaleString()}</td>
                     <td>{new Date(booking.endDate).toLocaleString()}</td>
                     <td>

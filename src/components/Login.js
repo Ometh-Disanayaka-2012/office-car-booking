@@ -65,6 +65,10 @@ const Login = () => {
           </button>
         </form>
 
+        <div className="login-footer">
+          <a href="/driver/login">Are you a driver? Login here →</a>
+        </div>
+
         <div className="demo-credentials">
           <strong>Demo Credentials:</strong><br />
           Admin: admin@company.com / admin123<br />

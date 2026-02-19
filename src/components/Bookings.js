@@ -1,4 +1,5 @@
 // src/components/Bookings.js
+import { notifyTripStarted, notifyTripEnded } from '../services/notificationService';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, query, where, onSnapshot, updateDoc, doc } from 'firebase/firestore';
@@ -146,6 +147,10 @@ const Bookings = () => {
         status: 'completed'
       });
       alert(`Trip completed successfully!\n\nTotal distance: ${distance} km`);
+      
+      // Send notification to driver
+      const car = cars.find(c => c.id === booking.carId);
+      if (car) notifyTripEnded({ ...booking, distanceTraveled: distance }, car);
     } catch (error) {
       console.error('Error ending trip:', error);
       alert('Failed to end trip. Please try again.');
@@ -188,6 +193,7 @@ const Bookings = () => {
             <tr>
               <th>Booked By</th>
               <th>Car</th>
+              <th>Car Plate</th>
               <th>Start Date</th>
               <th>End Date</th>
               <th>Distance</th>
@@ -219,6 +225,7 @@ const Bookings = () => {
                       </div>
                     </td>
                     <td>{car?.model || 'Unknown'}</td>
+                    <td>{car?.plate || 'Unknown'}</td>
                     <td>{new Date(booking.startDate).toLocaleString()}</td>
                     <td>{new Date(booking.endDate).toLocaleString()}</td>
                     <td>

@@ -1,4 +1,5 @@
 // src/components/BookingModal.js
+import { notifyNewTrip } from '../services/notificationService';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, addDoc, getDocs, query } from 'firebase/firestore';
@@ -166,6 +167,17 @@ const BookingModal = ({ car, existingBookings = [], isUnavailableToday = false, 
         tripStarted: false,
         createdAt: new Date().toISOString()
       });
+      
+      // Send notification to driver
+      const bookingData = {
+        id: "temp",
+        carId: car.id,
+        ...bookingFor,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        purpose: formData.purpose
+      };
+      notifyNewTrip(bookingData, car);
 
       alert(
         bookingFor.bookedByAdmin

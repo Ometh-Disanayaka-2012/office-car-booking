@@ -1,9 +1,9 @@
-// src/components/DriverModal.js
 import React, { useState, useEffect } from 'react';
 
 const DriverModal = ({ driver, cars, drivers, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     phone: '',
     license: '',
     carId: ''
@@ -13,6 +13,7 @@ const DriverModal = ({ driver, cars, drivers, onClose, onSave }) => {
     if (driver) {
       setFormData({
         name: driver.name || '',
+        email: driver.email || '',
         phone: driver.phone || '',
         license: driver.license || '',
         carId: driver.carId || ''
@@ -61,6 +62,22 @@ const DriverModal = ({ driver, cars, drivers, onClose, onSave }) => {
               required
               placeholder="e.g., Michael Johnson"
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email (for driver login)</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              placeholder="e.g., driver@company.com"
+            />
+            <small className="form-hint">
+              Driver will use last 4 digits of phone as password
+            </small>
           </div>
 
           <div className="form-group">

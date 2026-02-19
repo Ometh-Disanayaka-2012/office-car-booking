@@ -3,6 +3,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
+import DriverLogin from './components/DriverLogin';
+import DriverDashboard from './components/DriverDashboard';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import Cars from './components/Cars';
@@ -32,11 +34,19 @@ function AppRoutes() {
 
   return (
     <Routes>
+      {/* Employee/Admin Login */}
       <Route 
         path="/login" 
         element={currentUser ? <Navigate to="/dashboard" replace /> : <Login />} 
       />
+
+      {/* Driver Login */}
+      <Route path="/driver/login" element={<DriverLogin />} />
+
+      {/* Driver Dashboard (no auth check, uses localStorage) */}
+      <Route path="/driver/dashboard" element={<DriverDashboard />} />
       
+      {/* Employee/Admin Routes */}
       <Route
         path="/"
         element={
